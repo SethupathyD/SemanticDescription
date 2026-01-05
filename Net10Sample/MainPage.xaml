@@ -4,6 +4,6 @@
              xmlns:local="clr-namespace:Net10Sample"
              x:Class="Net10Sample.MainPage">
 
-    <local:CustomContainer />
+    <local:MatrixContainer />
     
 </ContentPage>

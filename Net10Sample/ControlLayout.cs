@@ -2,112 +2,94 @@
 
 namespace Net10Sample
 {
-    static public class Helper
+    public static class LayoutHelper
     {
-        static public int ColumnCount = 3;
-
-        static public int RowCount = 3;
-
-        static public double ColumnWidth = 100;
+        public static int ColumnCount = 3;
+        public static int RowCount = 3;
+        public static double ColumnWidth = 100;
     }
 
-    public class CustomContainer : ControlLayout
+    public class MatrixContainer : BaseLayout
     {
-        public CustomContainer()
-        {
-        }
+        public MatrixContainer() { }
 
         internal override Size MeasureContent(double widthConstraint, double heightConstraint)
         {
-            if (this.Children.Count == 0)
+            if (Children.Count == 0)
             {
-                for (int i = 0; i < Helper.RowCount; i++)
-                {
-                    this.Add(new CustomRow(i));
-                }
+                for (int i = 0; i < LayoutHelper.RowCount; i++)
+                    Add(new MatrixRow(i));
             }
 
-            foreach (var child in this.Children)
+            foreach (var child in Children)
             {
-                child.Measure(Helper.ColumnCount * 100, 50);
-                (child as CustomRow)?.CrossPlatformMeasure(widthConstraint, heightConstraint);
+                child.Measure(LayoutHelper.ColumnCount * 100, 50);
+                (child as MatrixRow)?.CrossPlatformMeasure(widthConstraint, heightConstraint);
             }
-
-            return new Size(Helper.ColumnCount * 100, Helper.RowCount * 50);
+            return new Size(LayoutHelper.ColumnCount * 100, LayoutHelper.RowCount * 50);
         }
 
         internal override Size ArrangeContent(Rect bounds)
         {
             var dy = 0;
-            foreach (var child in this.Children)
+            foreach (var child in Children)
             {
-                child.Arrange(new Rect(bounds.X, dy, Helper.ColumnCount * 100, 50));
-                (child as CustomRow)?.CrossPlatformArrange(bounds);
+                child.Arrange(new Rect(bounds.X, dy, LayoutHelper.ColumnCount * 100, 50));
+                (child as MatrixRow)?.CrossPlatformArrange(bounds);
                 dy += 50;
             }
-
             return bounds.Size;
         }
 
-        protected override ILayoutManager CreateLayoutManager()
-        {
-            return new ControlLayoutManager(this);
-        }
+        protected override ILayoutManager CreateLayoutManager() => new BaseLayoutManager(this);
     }
 
-    public class CustomRow : ControlLayout
+    public class MatrixRow : BaseLayout
     {
-        public CustomRow(int index)
+        public MatrixRow(int index)
         {
-            this.Index = index;
+            Index = index;
         }
 
         internal int Index = 0;
 
         internal override Size MeasureContent(double widthConstraint, double heightConstraint)
         {
-            if (this.Children.Count == 0)
+            if (Children.Count == 0)
             {
-                for (int i = 0; i < Helper.ColumnCount; i++)
-                {
-                    this.Add(new CustomCell(i));
-                }
+                for (int i = 0; i < LayoutHelper.ColumnCount; i++)
+                    Add(new MatrixCell(i));
             }
 
-            for (int i = 0; i < this.Children.Count; i++)
+            for (int i = 0; i < Children.Count; i++)
             {
-                var width = i == 0 ? Helper.ColumnWidth : 100;
-                this.Children[i].Measure(width, 50);
+                var width = i == 0 ? LayoutHelper.ColumnWidth : 100;
+                Children[i].Measure(width, 50);
             }
-
-            return new Size(Helper.ColumnCount * 100, 50);
+            return new Size(LayoutHelper.ColumnCount * 100, 50);
         }
 
         internal override Size ArrangeContent(Rect bounds)
         {
             double dx = 0;
-            for (int i = 0; i < this.Children.Count; i++)
+            for (int i = 0; i < Children.Count; i++)
             {
-                var width = i == 0 ? Helper.ColumnWidth : 100;
-                this.Children[i].Arrange(new Rect(dx, bounds.Y, width, 50));
+                var width = i == 0 ? LayoutHelper.ColumnWidth : 100;
+                Children[i].Arrange(new Rect(dx, bounds.Y, width, 50));
                 dx += width;
             }
-
             return bounds.Size;
-
         }
 
-        protected override ILayoutManager CreateLayoutManager()
-        {
-            return new ControlLayoutManager(this);
-        }
+        protected override ILayoutManager CreateLayoutManager() => new BaseLayoutManager(this);
     }
 
-    public class CustomCell : ContentView
+    public class MatrixCell : ContentView
     {
-        public CustomCell(int index)
+        public MatrixCell(int index)
         {
-            this.Index = index;
+            Index = index;
+
             var lbl = new Label
             {
                 Text = $"Index{index}",
@@ -116,35 +98,34 @@ namespace Net10Sample
             AutomationProperties.SetIsInAccessibleTree(this, true);
             this.RemoveBinding(SemanticProperties.DescriptionProperty);
 
-            // Set semantic description
             var cellValue = lbl.Text;
-            this.SetBinding(SemanticProperties.DescriptionProperty,
-                 new Binding(".", source: $"R {Index} {cellValue}"));
+            this.SetBinding(
+                SemanticProperties.DescriptionProperty,
+                new Binding(".", source: $"R {Index} {cellValue}")
+            );
 
             Content = lbl;
         }
 
         internal int Index = 0;
-
     }
 
-    public abstract class ControlLayout : Layout
+    public abstract class BaseLayout : Layout
     {
         internal abstract Size ArrangeContent(Rect bounds);
-
         internal abstract Size MeasureContent(double widthConstraint, double heightConstraint);
     }
 
-    internal class ControlLayoutManager : LayoutManager
+    internal class BaseLayoutManager : LayoutManager
     {
-        ControlLayout layout;
-        internal ControlLayoutManager(ControlLayout layout) : base(layout)
+        BaseLayout layout;
+
+        internal BaseLayoutManager(BaseLayout layout) : base(layout)
         {
             this.layout = layout;
         }
 
-        public override Size ArrangeChildren(Rect bounds) => this.layout.ArrangeContent(bounds);
-
-        public override Size Measure(double widthConstraint, double heightConstraint) => this.layout.MeasureContent(widthConstraint, heightConstraint);
+        public override Size ArrangeChildren(Rect bounds) => layout.ArrangeContent(bounds);
+        public override Size Measure(double widthConstraint, double heightConstraint) => layout.MeasureContent(widthConstraint, heightConstraint);
     }
 }
