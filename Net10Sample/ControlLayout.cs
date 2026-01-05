@@ -101,7 +101,7 @@ namespace Net10Sample
             var cellValue = lbl.Text;
             this.SetBinding(
                 SemanticProperties.DescriptionProperty,
-                new Binding(".", source: $"R {Index} {cellValue}")
+                new Binding(".", source: $" {Index} {cellValue}")
             );
 
             Content = lbl;
